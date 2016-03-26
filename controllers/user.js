@@ -15,6 +15,11 @@ var _            = require('lodash');
 
 exports.index = function (req, res, next) {
   var user_name = req.params.name;
+  var currentUser = req.session.user;
+  // 得到所有的 adminTabs, e.g. ['workshop', ..]
+  var allAdminTabs = config.adminTabs.map(function(tPair){
+    return tPair[0]
+  });
   User.getUserByLoginName(user_name, function (err, user) {
     if (err) {
       return next(err);
@@ -50,6 +55,9 @@ exports.index = function (req, res, next) {
     proxy.fail(next);
 
     var query = {author_id: user._id};
+    if((currentUser && !currentUser.is_admin)|| !currentUser){
+      query.tab = { $ne: allAdminTabs };
+    }
     var opt = {limit: 5, sort: '-create_at'};
     Topic.getTopicsByQuery(query, opt, proxy.done('recent_topics'));
 
@@ -62,6 +70,9 @@ exports.index = function (req, res, next) {
         topic_ids = _.uniq(topic_ids).slice(0, 5); //  只显示最近5条
 
         var query = {_id: {'$in': topic_ids}};
+        if((currentUser && !currentUser.is_admin)|| !currentUser){
+          query.tab = { $ne: allAdminTabs };
+        }
         var opt = {};
         Topic.getTopicsByQuery(query, opt, proxy.done('recent_replies', function (recent_replies) {
           recent_replies = _.sortBy(recent_replies, function (topic) {

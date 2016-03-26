@@ -42,15 +42,15 @@
     <%- partial('./_ads') %>
   <% } %>
 
-  <% if (typeof(no_reply_topics) !== 'undefined') { %>
+  <% if (typeof(most_visited_topics) !== 'undefined') { %>
   <div class='panel'>
     <div class='header'>
-      <span class='col_fade'>无人回复的话题</span>
+      <span class='col_fade'>最热话题</span>
     </div>
     <div class='inner'>
-      <% if (no_reply_topics.length > 0) { %>
+      <% if (most_visited_topics.length > 0) { %>
       <ul class="unstyled">
-        <%- partial('topic/small', { collection: no_reply_topics, as: 'topic' }) %>
+        <%- partial('topic/small', { collection: most_visited_topics, as: 'topic' }) %>
       </ul>
       <% } else { %>
       <p>无</p>
@@ -78,41 +78,41 @@
   </div>
   <% } %>
 
-  <div class='panel'>
-    <div class='header'>
-      <span class='col_fade'>友情社区</span>
-    </div>
-    <div class='inner'>
-      <ol class="friendship-community">
-        <li>
-          <a href="https://ruby-china.org/" target="_blank">
-            <img src="<%- staticFile('/public/images/ruby-china-20150529.png') %>">
-          </a>
-        </li>
-        <div class="sep10"></div>
-        <li>
-          <a href="http://golangtc.com/" target="_blank">
-            <img src="<%- staticFile('/public/images/golangtc-logo.png') %>">
-          </a>
-        </li>
-        <div class="sep10"></div>
-        <li>
-          <a href="http://phphub.org/" target="_blank">
-            <img src="<%- staticFile('/public/images/phphub-logo.png') %>">
-          </a>
-        </li>
-      </ol>
-    </div>
-  </div>
-  <div class='panel'>
-    <div class='header'>
-      <span class='col_fade'>客户端二维码</span>
-    </div>
-    <div class='inner cnode-app-download'>
-      <img width='200' src="//dn-cnode.qbox.me/FtG0YVgQ6iginiLpf9W4_ShjiLfU">
-      <br />
-      <a href="https://itunes.apple.com/cn/app/id954734793" target="_blank">iOS</a>/<a href="http://fir.im/ks4u" target="_blank">Android</a>
-    </div>
-  </div>
+  <!--<div class='panel'>-->
+    <!--<div class='header'>-->
+      <!--<span class='col_fade'>友情社区</span>-->
+    <!--</div>-->
+    <!--<div class='inner'>-->
+      <!--<ol class="friendship-community">-->
+        <!--<li>-->
+          <!--<a href="https://ruby-china.org/" target="_blank">-->
+            <!--<img src="<%- staticFile('/public/images/ruby-china-20150529.png') %>">-->
+          <!--</a>-->
+        <!--</li>-->
+        <!--<div class="sep10"></div>-->
+        <!--<li>-->
+          <!--<a href="http://golangtc.com/" target="_blank">-->
+            <!--<img src="<%- staticFile('/public/images/golangtc-logo.png') %>">-->
+          <!--</a>-->
+        <!--</li>-->
+        <!--<div class="sep10"></div>-->
+        <!--<li>-->
+          <!--<a href="http://phphub.org/" target="_blank">-->
+            <!--<img src="<%- staticFile('/public/images/phphub-logo.png') %>">-->
+          <!--</a>-->
+        <!--</li>-->
+      <!--</ol>-->
+    <!--</div>-->
+  <!--</div>-->
+  <!--<div class='panel'>-->
+    <!--<div class='header'>-->
+      <!--<span class='col_fade'>客户端二维码</span>-->
+    <!--</div>-->
+    <!--<div class='inner cnode-app-download'>-->
+      <!--<img width='200' src="//dn-cnode.qbox.me/FtG0YVgQ6iginiLpf9W4_ShjiLfU">-->
+      <!--<br />-->
+      <!--<a href="https://itunes.apple.com/cn/app/id954734793" target="_blank">iOS</a>/<a href="http://fir.im/ks4u" target="_blank">Android</a>-->
+    <!--</div>-->
+  <!--</div>-->
 
 </div>

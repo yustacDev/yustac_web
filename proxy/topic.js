@@ -73,6 +73,7 @@ exports.getCountByQuery = function (query, callback) {
 exports.getTopicsByQuery = function (query, opt, callback) {
   query.deleted = false;
   Topic.find(query, {}, opt, function (err, topics) {
+    console.log(query);
     if (err) {
       return callback(err);
     }

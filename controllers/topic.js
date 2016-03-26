@@ -27,6 +27,10 @@ var cache        = require('../common/cache');
  * @param  {Function} next
  */
 exports.index = function (req, res, next) {
+  // 得到所有的 adminTabs, e.g. ['workshop', ..]
+  var allAdminTabs = config.adminTabs.map(function(tPair){
+    return tPair[0]
+  });
   function isUped(user, reply) {
     if (!reply.ups) {
       return false;
@@ -40,13 +44,13 @@ exports.index = function (req, res, next) {
   if (topic_id.length !== 24) {
     return res.render404('此话题不存在或已被删除。');
   }
-  var events = ['topic', 'other_topics', 'no_reply_topics', 'is_collect'];
+  var events = ['topic', 'other_topics', 'most_visited_topics', 'is_collect'];
   var ep = EventProxy.create(events,
-    function (topic, other_topics, no_reply_topics, is_collect) {
+    function (topic, other_topics, most_visited_topics, is_collect) {
     res.render('topic/index', {
       topic: topic,
       author_other_topics: other_topics,
-      no_reply_topics: no_reply_topics,
+      most_visited_topics: most_visited_topics,
       is_uped: isUped,
       is_collect: is_collect,
     });
@@ -85,22 +89,41 @@ exports.index = function (req, res, next) {
     // get other_topics
     var options = { limit: 5, sort: '-last_reply_at'};
     var query = { author_id: topic.author_id, _id: { '$nin': [ topic._id ] } };
+    if((currentUser && !currentUser.is_admin)|| !currentUser){
+      query.tab = { $ne: allAdminTabs };
+    }
     Topic.getTopicsByQuery(query, options, ep.done('other_topics'));
 
-    // get no_reply_topics
-    cache.get('no_reply_topics', ep.done(function (no_reply_topics) {
-      if (no_reply_topics) {
-        ep.emit('no_reply_topics', no_reply_topics);
-      } else {
+    //// get no_reply_topics
+    //cache.get('no_reply_topics', ep.done(function (no_reply_topics) {
+    //  if (no_reply_topics) {
+    //    ep.emit('no_reply_topics', no_reply_topics);
+    //  } else {
+    //    Topic.getTopicsByQuery(
+    //      { reply_count: 0, tab: {$ne: 'job'}},
+    //      { limit: 5, sort: '-create_at'},
+    //      ep.done('no_reply_topics', function (no_reply_topics) {
+    //        cache.set('no_reply_topics', no_reply_topics, 60 * 1);
+    //        return no_reply_topics;
+    //      }));
+    //  }
+    //}));
+
+    //取被看过最多的帖子
+    cache.get('most_visited_topics',ep.done(function(most_visited_topics){
+      if(most_visited_topics){
+        ep.emit('most_visited_topics', most_visited_topics);
+      }else{
         Topic.getTopicsByQuery(
-          { reply_count: 0, tab: {$ne: 'job'}},
-          { limit: 5, sort: '-create_at'},
-          ep.done('no_reply_topics', function (no_reply_topics) {
-            cache.set('no_reply_topics', no_reply_topics, 60 * 1);
-            return no_reply_topics;
-          }));
+            { tab: {$ne: allAdminTabs}},
+            { limit: 5, sort: '-visit_count'},
+            ep.done('most_visited_topics', function (most_visited_topics) {
+              cache.set('most_visited_topics', most_visited_topics, 60 * 1);
+              return most_visited_topics;
+            }));
       }
     }));
+    //END 取被看过最多的帖子
   }));
 
   if (!currentUser) {
@@ -112,7 +135,8 @@ exports.index = function (req, res, next) {
 
 exports.create = function (req, res, next) {
   res.render('topic/edit', {
-    tabs: config.tabs
+    tabs: config.tabs,
+    adminTab:config.adminTabs
   });
 };
 
@@ -126,6 +150,12 @@ exports.put = function (req, res, next) {
   var allTabs = config.tabs.map(function (tPair) {
     return tPair[0];
   });
+  //加入管理员专用的tab
+  var allAdminTabs = config.adminTabs.map(function(tPair){
+    return tPair[0];
+  });
+
+  allTabs.push(allAdminTabs);
 
   // 验证
   var editError;
@@ -146,7 +176,8 @@ exports.put = function (req, res, next) {
       edit_error: editError,
       title: title,
       content: content,
-      tabs: config.tabs
+      tabs: config.tabs,
+      adminTab:config.adminTabs
     });
   }
 

@@ -19,12 +19,19 @@ var renderHelper = require('../common/render_helper');
 var _            = require('lodash');
 
 exports.index = function (req, res, next) {
+  var currentUser = req.session.user;
   var page = parseInt(req.query.page, 10) || 1;
   page = page > 0 ? page : 1;
   var tab = req.query.tab || 'all';
 
   var proxy = new eventproxy();
   proxy.fail(next);
+
+  // 得到所有的 adminTabs, e.g. ['workshop', ..]
+  var allAdminTabs = config.adminTabs.map(function(tPair){
+    return tPair[0]
+  });
+
 
   // 取主题
   var query = {};
@@ -36,6 +43,14 @@ exports.index = function (req, res, next) {
     }
   }
 
+  //访问管理员专用,提示无权限
+  if((currentUser && !currentUser.is_admin && allAdminTabs.indexOf(tab)!=-1)){
+    res.status(403);
+    return res.send({success: false, message: '无权限'});
+  }
+  if((currentUser && !currentUser.is_admin)|| !currentUser){
+    query.tab = { $ne: allAdminTabs };
+  }
   var limit = config.list_topic_count;
   var options = { skip: (page - 1) * limit, limit: limit, sort: '-top -last_reply_at'};
 
@@ -60,20 +75,36 @@ exports.index = function (req, res, next) {
   }));
   // END 取排行榜上的用户
 
-  // 取0回复的主题
-  cache.get('no_reply_topics', proxy.done(function (no_reply_topics) {
-    if (no_reply_topics) {
-      proxy.emit('no_reply_topics', no_reply_topics);
-    } else {
+  //取被看过最多的帖子
+  cache.get('most_visited_topics',proxy.done(function(most_visited_topics){
+    if(most_visited_topics){
+      proxy.emit('most_visited_topics', most_visited_topics);
+    }else{
       Topic.getTopicsByQuery(
-        { reply_count: 0, tab: {$ne: 'job'}},
-        { limit: 5, sort: '-create_at'},
-        proxy.done('no_reply_topics', function (no_reply_topics) {
-          cache.set('no_reply_topics', no_reply_topics, 60 * 1);
-          return no_reply_topics;
-        }));
+          { tab: {$ne: allAdminTabs}},
+          { limit: 5, sort: '-visit_count'},
+          proxy.done('most_visited_topics', function (most_visited_topics) {
+            cache.set('most_visited_topics', most_visited_topics, 60 * 1);
+            return most_visited_topics;
+          }));
     }
   }));
+  //END 取被看过最多的帖子
+
+  // 取0回复的主题
+  //cache.get('no_reply_topics', proxy.done(function (no_reply_topics) {
+  //  if (no_reply_topics) {
+  //    proxy.emit('no_reply_topics', no_reply_topics);
+  //  } else {
+  //    Topic.getTopicsByQuery(
+  //      { reply_count: 0, tab: {$ne: allAdminTabs}},
+  //      { limit: 5, sort: '-create_at'},
+  //      proxy.done('no_reply_topics', function (no_reply_topics) {
+  //        cache.set('no_reply_topics', no_reply_topics, 60 * 1);
+  //        return no_reply_topics;
+  //      }));
+  //  }
+  //}));
   // END 取0回复的主题
 
   // 取分页数据
@@ -92,16 +123,17 @@ exports.index = function (req, res, next) {
   // END 取分页数据
 
   var tabName = renderHelper.tabName(tab);
-  proxy.all('topics', 'tops', 'no_reply_topics', 'pages',
-    function (topics, tops, no_reply_topics, pages) {
+  proxy.all('topics', 'tops', 'most_visited_topics', 'pages',
+    function (topics, tops, most_visited_topics, pages) {
       res.render('index', {
         topics: topics,
         current_page: page,
         list_topic_count: limit,
         tops: tops,
-        no_reply_topics: no_reply_topics,
+        most_visited_topics: most_visited_topics,
         pages: pages,
         tabs: config.tabs,
+        adminTab:config.adminTabs,
         tab: tab,
         pageTitle: tabName && (tabName + '版块'),
       });

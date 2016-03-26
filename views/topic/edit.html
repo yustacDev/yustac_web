@@ -45,6 +45,16 @@
                 <option value="<%=value%>" <%= tabValue === value ? 'selected': '' %>><%=text%></option>
 
               <%});%>
+              <% if (current_user) { %>
+                <% if (current_user.is_admin) { %>
+                  <% adminTab.forEach(function(pair){
+                    var value = pair[0];
+                    var text = pair[1];
+                   %>
+                  <option value="<%=value%>" <%= tabValue === value ? 'selected': '' %>><%=text%></option>
+                  <%});%>
+                <% } %>
+              <% } %>
             </select>
             <span id="topic_create_warn"></span>
             <textarea autofocus class='span9' id='title' name='title' rows='1'
