@@ -136,7 +136,7 @@ exports.index = function (req, res, next) {
 exports.create = function (req, res, next) {
   res.render('topic/edit', {
     tabs: config.tabs,
-    adminTab:config.adminTabs
+    adminTabs:config.adminTabs
   });
 };
 
@@ -163,7 +163,7 @@ exports.put = function (req, res, next) {
     editError = '标题不能是空的。';
   } else if (title.length < 5 || title.length > 100) {
     editError = '标题字数太多或太少。';
-  } else if (!tab || allTabs.indexOf(tab) === -1) {
+  } else if (!tab || allTabs.indexOf(tab) === -1 && allAdminTabs.indexOf(tab) === -1) {
     editError = '必须选择一个版块。';
   } else if (content === '') {
     editError = '内容不可为空';
@@ -177,7 +177,7 @@ exports.put = function (req, res, next) {
       title: title,
       content: content,
       tabs: config.tabs,
-      adminTab:config.adminTabs
+      adminTabs:config.adminTabs
     });
   }
 
@@ -221,7 +221,8 @@ exports.showEdit = function (req, res, next) {
         title: topic.title,
         content: topic.content,
         tab: topic.tab,
-        tabs: config.tabs
+        tabs: config.tabs,
+        adminTabs:config.adminTabs
       });
     } else {
       res.renderError('对不起，你不能编辑此话题。', 403);
@@ -263,7 +264,8 @@ exports.update = function (req, res, next) {
           edit_error: editError,
           topic_id: topic._id,
           content: content,
-          tabs: config.tabs
+          tabs: config.tabs,
+          adminTabs:config.adminTabs
         });
       }
 

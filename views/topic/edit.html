@@ -47,7 +47,7 @@
               <%});%>
               <% if (current_user) { %>
                 <% if (current_user.is_admin) { %>
-                  <% adminTab.forEach(function(pair){
+                  <% adminTabs.forEach(function(pair){
                     var value = pair[0];
                     var text = pair[1];
                    %>
@@ -94,6 +94,8 @@
     // 版块选择的检查，必须选择
     $('#create_topic_form').on('submit', function (e) {
       var tabValue = $('#tab-value').val();
+      console.log('haha');
+      console.log($('#tab-value').val());
       if (!tabValue) {
         alert('必须选择一个版块！');
         $('.submit_btn').button('reset');

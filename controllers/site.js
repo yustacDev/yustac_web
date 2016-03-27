@@ -32,25 +32,37 @@ exports.index = function (req, res, next) {
     return tPair[0]
   });
 
-
-  // 取主题
-  var query = {};
-  if (tab && tab !== 'all') {
-    if (tab === 'good') {
-      query.good = true;
-    } else {
-      query.tab = tab;
-    }
-  }
-
   //访问管理员专用,提示无权限
   if((currentUser && !currentUser.is_admin && allAdminTabs.indexOf(tab)!=-1)){
     res.status(403);
     return res.send({success: false, message: '无权限'});
   }
+
+  // 取主题
+  var query = {};
+
   if((currentUser && !currentUser.is_admin)|| !currentUser){
-    query.tab = { $ne: allAdminTabs };
+    if (tab && tab !== 'all') {
+      if (tab === 'good') {
+        query.tab = { $ne: allAdminTabs,$eq:tab };
+        query.good = true;
+      } else {
+        query.tab = { $ne: allAdminTabs,$eq:tab };
+      }
+    }else{
+      query.tab = { $ne: allAdminTabs}
+    }
+  }else {
+    if (tab && tab !== 'all') {
+      if (tab === 'good') {
+        query.good = true;
+      } else {
+        query.tab = tab;
+      }
+    }
   }
+
+
   var limit = config.list_topic_count;
   var options = { skip: (page - 1) * limit, limit: limit, sort: '-top -last_reply_at'};
 

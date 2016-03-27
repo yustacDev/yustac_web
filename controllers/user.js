@@ -231,7 +231,9 @@ exports.listCollectedTopics = function (req, res, next) {
         return String(doc.topic_id)
       })
       var query = { _id: { '$in': ids } };
-
+      if((currentUser && !currentUser.is_admin)|| !currentUser){
+        query.tab = { $ne: allAdminTabs };
+      }
       Topic.getTopicsByQuery(query, {}, proxy.done('topics', function (topics) {
         topics = _.sortBy(topics, function (topic) {
           return ids.indexOf(String(topic._id))
@@ -284,6 +286,9 @@ exports.listTopics = function (req, res, next) {
     proxy.fail(next);
 
     var query = {'author_id': user._id};
+    if((currentUser && !currentUser.is_admin)|| !currentUser){
+      query.tab = { $ne: allAdminTabs };
+    }
     var opt = {skip: (page - 1) * limit, limit: limit, sort: '-create_at'};
     Topic.getTopicsByQuery(query, opt, proxy.done('topics'));
 
@@ -327,6 +332,9 @@ exports.listReplies = function (req, res, next) {
       topic_ids = _.uniq(topic_ids);
 
       var query = {'_id': {'$in': topic_ids}};
+      if((currentUser && !currentUser.is_admin)|| !currentUser){
+        query.tab = { $ne: allAdminTabs };
+      }
       Topic.getTopicsByQuery(query, {}, proxy.done('topics', function (topics) {
         topics = _.sortBy(topics, function (topic) {
           return topic_ids.indexOf(topic._id.toString())
