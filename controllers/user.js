@@ -265,7 +265,7 @@ exports.listTopics = function (req, res, next) {
   var user_name = req.params.name;
   var page = Number(req.query.page) || 1;
   var limit = config.list_topic_count;
-
+  var currentUser = req.session.user;
   User.getUserByLoginName(user_name, function (err, user) {
     if (!user) {
       res.render404('这个用户不存在。');
